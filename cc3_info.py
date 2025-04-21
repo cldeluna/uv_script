@@ -39,6 +39,22 @@ from typing import List, Dict, Any, Optional
 import requests
 import pycountry
 
+
+def load_env_variables():
+    """
+    Load environment variables from .env file if it exists
+    """
+    try:
+        from dotenv import load_dotenv
+        # Load environment variables from .env file
+        load_dotenv()
+        print("Environment variables loaded from .env file")
+    except ImportError:
+        print("Warning: python-dotenv not installed, skipping .env file loading")
+    except Exception as e:
+        print(f"Warning: Failed to load .env file: {e}")
+
+
 def get_country_codes_from_module() -> List[Dict[str, str]]:
     """
     Get all available country codes using the pycountry module.
