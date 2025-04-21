@@ -17,7 +17,6 @@ __copyright__ = "Copyright (c) 2023 Claudia"
 __license__ = "Python"
 
 
-
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
@@ -38,6 +37,7 @@ from typing import List, Dict, Any, Optional
 
 import requests
 import pycountry
+import dotenv
 
 
 def load_env_variables():
@@ -45,9 +45,9 @@ def load_env_variables():
     Load environment variables from .env file if it exists
     """
     try:
-        from dotenv import load_dotenv
+
         # Load environment variables from .env file
-        load_dotenv()
+        dotenv.load_dotenv()
         print("Environment variables loaded from .env file")
     except ImportError:
         print("Warning: python-dotenv not installed, skipping .env file loading")
@@ -70,8 +70,10 @@ def get_api_token(api_key: Optional[str] = None) -> str:
         return api_key
 
     # Then try environment variable
-    env_token = os.environ.get('CC3_API_TOKEN')
+    evar_name = "CC3_API_TOKEN"
+    env_token = os.environ.get(evar_name)
     if env_token:
+        print(f"Found environment variable: {evar_name}")
         return env_token
 
     # No token found
@@ -87,6 +89,7 @@ def get_country_codes_from_module() -> List[Dict[str, str]]:
         List of dictionaries containing country codes and names.
     """
     try:
+        import pycountry
         countries = []
         for country in pycountry.countries:
             countries.append({
@@ -98,69 +101,57 @@ def get_country_codes_from_module() -> List[Dict[str, str]]:
         countries.sort(key=lambda x: x["name"])
         return countries
 
+    except ImportError:
+        print("Error: pycountry module not found. Make sure to run with 'uv run script.py'")
+        print("Falling back to API method...")
+        return []
     except Exception as e:
         print(f"Error fetching country codes from pycountry: {e}")
         print("Falling back to API method...")
         return []
 
 
-def get_country_codes() -> List[Dict[str, str]]:
+def get_country_codes(api_token: str) -> List[Dict[str, str]]:
     """
-    Fetch all available country codes from the REST Countries API.
+    Fetch all available country codes from the Restful Countries API.
 
-    Returns:
-        List of dictionaries containing country codes and names.
-    """
-    try:
-        response = requests.get("https://restcountries.com/v3.1/all")
-        response.raise_for_status()
-
-        countries = response.json()
-        country_codes = []
-
-        for country in countries:
-            if "cca3" in country and "name" in country:
-                country_codes.append({
-                    "code": country["cca3"],
-                    "name": country["name"]["common"]
-                })
-
-        # Sort by country name
-        country_codes.sort(key=lambda x: x["name"])
-        return country_codes
-
-    except requests.RequestException as e:
-        print(f"Error fetching country codes: {e}")
-        return []
-
-
-def get_country_codes_api() -> List[Dict[str, str]]:
-    """
-    Fetch all available country codes from the REST Countries API.
+    Args:
+        api_token: API token for authentication
 
     Returns:
         List of dictionaries containing country codes and names.
     """
     try:
         import requests
-        # Updated endpoint to v3.1
-        response = requests.get("https://restcountries.com/v3.1/all")
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_token}"
+        }
+
+        url = "https://restfulcountries.com/api/v1/countries"
+        print(f"Requesting: {url}")
+
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        countries = response.json()
-        country_codes = []
+        # Parse the response
+        data = response.json()
 
-        for country in countries:
-            # Updated to match v3.1 schema
-            if "cca3" in country and "name" in country:
-                country_codes.append({
-                    "code": country["cca3"],
-                    "name": country["name"]["common"]
+        if "data" not in data:
+            print(f"Unexpected API response format: {data}")
+            return []
+
+        countries = []
+        for country in data["data"]:
+            if "iso3" in country and "name" in country:
+                countries.append({
+                    "code": country["iso3"],
+                    "name": country["name"]
                 })
 
         # Sort by country name
-        country_codes.sort(key=lambda x: x["name"])
-        return country_codes
+        countries.sort(key=lambda x: x["name"])
+        return countries
 
     except requests.RequestException as e:
         print(f"Error fetching country codes: {e}")
@@ -266,100 +257,46 @@ def select_country_code(country_codes: List[Dict[str, str]], use_cli_selector: b
         return "CZE"
 
 
-def get_country_info(country_code: str) -> Dict[str, Any]:
+def get_country_info(country_code: str, api_token: str) -> Dict[str, Any]:
     """
-    Fetch detailed information about a country using its code.
+    Fetch detailed information about a country using its code from Restful Countries API.
 
     Args:
         country_code: 3-letter country code
+        api_token: API token for authentication
 
     Returns:
         Dictionary containing country information
     """
     try:
         import requests
-        # Updated endpoint to v3.1
-        url = f"https://restcountries.com/v3.1/alpha/{country_code}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_token}"
+        }
+
+        # Using the Restful Countries API for a specific country
+        url = f"https://restfulcountries.com/api/v1/countries?iso3={country_code}"
         print(f"Requesting: {url}")
-        response = requests.get(url)
+
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        return response.json()[0]
+        data = response.json()
+
+        # Check if the response has the expected structure
+        if "data" not in data or not data["data"]:
+            print(f"No data found for country code: {country_code}")
+            return {}
+
+        # Return the first country that matches (should be only one)
+        # return data["data"][0]
+        return data["data"]
 
     except requests.RequestException as e:
         print(f"Error fetching country information: {e}")
         print("API endpoint might be experiencing issues. Please try again later.")
         return {}
-
-
-def display_country_info(country_info: Dict[str, Any]) -> None:
-    """
-    Display formatted country information from v3.1 API format.
-
-    Args:
-        country_info: Dictionary containing country information
-    """
-    if not country_info:
-        print("No country information available.")
-        return
-
-    print("\n===== COUNTRY INFORMATION =====\n")
-
-    # Basic information (updated for v3.1 schema)
-    print(f"Name: {country_info.get('name', {}).get('common', 'N/A')}")
-    print(f"Official Name: {country_info.get('name', {}).get('official', 'N/A')}")
-
-    # Capital (handling potential list)
-    capitals = country_info.get('capital', ['N/A'])
-    if isinstance(capitals, list):
-        print(f"Capital: {', '.join(capitals)}")
-    else:
-        print(f"Capital: {capitals}")
-
-    print(f"Region: {country_info.get('region', 'N/A')}")
-    print(f"Subregion: {country_info.get('subregion', 'N/A')}")
-
-    # Population
-    print(f"Population: {country_info.get('population', 'N/A'):,}")
-
-    # Area
-    area = country_info.get('area', 'N/A')
-    if isinstance(area, (int, float)):
-        print(f"Area: {area:,} km²")
-    else:
-        print(f"Area: {area}")
-
-    # Languages (updated for v3.1 schema)
-    languages = country_info.get('languages', {})
-    if languages:
-        print("Languages:")
-        for code, language in languages.items():
-            print(f"  - {language} ({code})")
-
-    # Currencies (updated for v3.1 schema)
-    currencies = country_info.get('currencies', {})
-    if currencies:
-        print("Currencies:")
-        for code, currency_info in currencies.items():
-            print(f"  - {currency_info.get('name', 'N/A')} ({code})")
-            print(f"    Symbol: {currency_info.get('symbol', 'N/A')}")
-
-    # Flags (updated for v3.1 schema)
-    print(f"Flag: {country_info.get('flags', {}).get('png', 'N/A')}")
-
-    # Borders
-    borders = country_info.get('borders', [])
-    if borders:
-        print("Borders with:")
-        for border in borders:
-            print(f"  - {border}")
-
-    # Timezone
-    timezones = country_info.get('timezones', [])
-    if timezones:
-        print("Timezones:")
-        for timezone in timezones:
-            print(f"  - {timezone}")
 
 
 def main():
@@ -388,33 +325,32 @@ def main():
     print(f"\tVirtual environment path: {sys.prefix}\n")
 
 
-    # Get selected code or use default (Czech Republic - CZE)
-    # selected_code = arguments.select if arguments.select else "CZE"
+    # Load environment variables
+    load_env_variables()
+
+    # Get API token
+    api_token = get_api_token(arguments.api_key)
 
     # Get all country codes
     print("Fetching available country codes...")
 
-    if arguments.use_api:
-        country_codes = get_country_codes_api()
-    else:
-        # Try using the module first, fall back to API if it fails
-        country_codes = get_country_codes_from_module()
-        if not country_codes:
-            country_codes = get_country_codes_api()
+    # Try using the module first, fall back to API if it fails
+    country_codes = get_country_codes_from_module()
+    if not country_codes:
+        country_codes = get_country_codes(api_token)
 
     if not country_codes:
         print("Failed to fetch country codes. Exiting.")
         return
 
     # Select a country code
-    # country_code = select_country_code(country_codes, selected_code)
-    # Select a country code
     country_code = select_country_code(country_codes, use_cli_selector=arguments.select)
 
     # Get and display country information
     print(f"\nFetching information for {country_code}...")
-    country_info = get_country_info(country_code)
-    display_country_info(country_info)
+    country_info = get_country_info(country_code, api_token)
+    for k, v in country_info.items():
+        print(f"{k.upper()}: {v}")
 
 
 # Standard call to the main() function.
@@ -423,7 +359,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Fetch information about a country using its 3-letter code",
                                      epilog="Usage: ' python cc3_info.py' ")
     parser.add_argument("-s", "--select", action="store_true", help="Show country selection interface")
-    parser.add_argument("--use-api", action="store_true",
+    parser.add_argument("-a", "--use-api", action="store_true",
                         help="Use REST API instead of pycountry module for country codes")
+    parser.add_argument("-k", "--api-key", type=str, help="API key for Restful Countries API")
+
     arguments = parser.parse_args()
     main()

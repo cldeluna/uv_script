@@ -1,4 +1,7 @@
 
+# Standalone UV Script
+
+Companion Repository for Ultra Valuable UV
 
 
 ```bash
@@ -18,5 +21,12 @@ uv run cc3_info.py
 
 
 ```bash
-uv add --script cc3_info.py --python 3.11 requests pycountry
+uv add --script cc3_info.py --python 3.11 requests pycountry python-dotenv
+
+% uv sync --script cc3_info.py 
+Using script environment at: /Users/claudiadeluna/.cache/uv/environments-v2/cc3-info-1b81c18f915397c7
+Resolved 7 packages in 157ms
+Audited 7 packages in 0.04ms
+
+
 ```
