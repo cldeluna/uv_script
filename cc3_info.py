@@ -55,6 +55,30 @@ def load_env_variables():
         print(f"Warning: Failed to load .env file: {e}")
 
 
+def get_api_token(api_key: Optional[str] = None) -> str:
+    """
+    Get API token from command line argument or environment variable.
+
+    Args:
+        api_key: API key provided via command line argument
+
+    Returns:
+        API token to use for requests
+    """
+    # First try command line argument
+    if api_key:
+        return api_key
+
+    # Then try environment variable
+    env_token = os.environ.get('CC3_API_TOKEN')
+    if env_token:
+        return env_token
+
+    # No token found
+    sys.exit(
+        "Error: API token required. Please provide it via --api-key argument or set CC3_API_TOKEN environment variable.")
+
+
 def get_country_codes_from_module() -> List[Dict[str, str]]:
     """
     Get all available country codes using the pycountry module.
