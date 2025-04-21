@@ -21,14 +21,16 @@ __license__ = "Python"
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#     "pycountry",
-#     "requests",
+#     "pycountry>=24.2.0",
+#     "requests>=2.31.0",
+#     "python-dotenv>=1.0.0",
 # ]
 # ///
 
 
 import argparse
 import json
+import time
 import sys
 import os
 
@@ -341,9 +343,8 @@ def main():
 
     """
 
-    print("\n----- Dynamic On-demand Virtual nvironment Details -----")
-    print("\tPython version:")
-    print(".".join(map(str, sys.version_info[:3])))
+    print("\n----- Dynamic On-demand Virtual Environment Details -----")
+    print(f"\tPython version: {'.'.join(map(str, sys.version_info[:3]))}")
     print(f"\tVirtual environment path: {sys.prefix}\n")
 
 
