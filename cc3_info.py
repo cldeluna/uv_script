@@ -26,7 +26,7 @@ __license__ = "Python"
 # ]
 # ///
 
-
+import importlib.metadata
 import argparse
 import json
 import time
@@ -324,6 +324,9 @@ def main():
     print(f"\tPython version: {'.'.join(map(str, sys.version_info[:3]))}")
     print(f"\tVirtual environment path: {sys.prefix}\n")
 
+    # For all installed packages
+    for dist in importlib.metadata.distributions():
+        print(f"\t{dist.metadata['Name']}=={dist.version}")
 
     # Load environment variables
     load_env_variables()
@@ -357,7 +360,7 @@ def main():
 if __name__ == '__main__':
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Fetch information about a country using its 3-letter code",
-                                     epilog="Usage: ' python cc3_info.py' ")
+                                     epilog="Usage: ' uv run cc3_info.py or python cc3_info.py' ")
     parser.add_argument("-s", "--select", action="store_true", help="Show country selection interface")
     parser.add_argument("-a", "--use-api", action="store_true",
                         help="Use REST API instead of pycountry module for country codes")
