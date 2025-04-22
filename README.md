@@ -1,7 +1,7 @@
 
 # Standalone UV Script
 
-Companion Repository for Ultra Valuable uv for Dynamic, On-Demand Python Virtual Environments
+Companion Repository for [Ultra Valuable uv for Dynamic, On-Demand Python Virtual Environments](https://gratuitous-arp.net/dynamic-on-demand-python-venv-or-virtual-environments/).
 
 Test script which requires three 3rd party Python modules.  It provides information about a country using the countrys three letter country code.  By default it will provide information about CZE, the Czech Republic.
 
