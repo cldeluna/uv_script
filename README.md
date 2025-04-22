@@ -64,13 +64,13 @@ If that does not work, please review the uv installation instructions:
 
 Tip: Make It Permanent (System/User Environment Variable)
 
-If you want `uv` to always be available from any new terminal:
+If you want `uv` to always be available from any new PowerShell terminal:
 
 ```
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\AppData\Local\uv\bin", "User")
 ```
 
-Then open up a new terminal.
+Then open up a new PowerShell terminal.
 
 ---
 
@@ -110,7 +110,7 @@ Example of the inline script metadata:
 
 ## Execute Test Script
 
-This scripts uses the Restful Countries API which requires a (free) token.
+This script uses the [Restful Countries API](https://restfulcountries.com) which requires a (free) token.
 
 1. Rename the `.env_sample` file  to `.env` taking care not to add a file extension.  (`.env` is the file extension!)
 2. Replace "Your API Token from https://restfulcountries.com/" with your actual API token.
@@ -146,7 +146,7 @@ options:
 Usage: ' uv run cc3_info.py or python cc3_info.py'
 ```
 
-
+Execute the script with `uv run`
 
 ```bash
 uv run cc3_info.py
