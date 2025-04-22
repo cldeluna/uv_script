@@ -1,7 +1,7 @@
 
 # Standalone UV Script
 
-Companion Repository for Ultra Valuable UV
+Companion Repository for Ultra Valuable uv for Dynamic, On-Demand Python Virtual Environments
 
 Test script which requires three 3rd party Python modules.  It provides information about a country using the countrys three letter country code.  By default it will provide information about CZE, the Czech Republic.
 
@@ -12,7 +12,7 @@ Test script which requires three 3rd party Python modules.  It provides informat
 
 ## Why are we using it?
 
-This repository was inspired by [NAFs](https://networkautomation.forum/) [AutoCon3](https://networkautomation.forum/autocon3) [Templating workshop](https://networkautomation.forum/autocon3#workshop).
+This repository was inspired by [NAF's](https://networkautomation.forum/) [AutoCon3](https://networkautomation.forum/autocon3) [Templating workshop](https://networkautomation.forum/autocon3#workshop).
 
 Because **uv** is a comprehensive package manager it will be easier to create the necessary **Python execution environments** for the scripts we will be executing in our Jinja2 workshop.
 
